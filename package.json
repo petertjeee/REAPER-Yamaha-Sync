@@ -1,6 +1,6 @@
 {
   "name": "reaper-yamaha-sync",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Sync channel names between Yamaha DM7/QL mixers and REAPER DAW",
   "main": "main.js",
   "scripts": {
@@ -20,7 +20,7 @@
       "target": [{ "target": "zip", "arch": ["x64", "arm64"] }]
     },
     "win": {
-      "target": [{ "target": "zip", "arch": ["x64"] }]
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
     },
     "files": [
       "main.js",

@@ -50,6 +50,14 @@ jobs:
           path: dist/*.zip
           if-no-files-found: warn
 
+      - name: Zip Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem dist/*.exe | Select-Object -First 1
+          $zipName = $exe.BaseName + ".zip"
+          Compress-Archive -Path $exe.FullName -DestinationPath "dist/$zipName"
+
       - name: Upload Windows artifacts
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4

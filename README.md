@@ -25,8 +25,8 @@ Download the latest release from the [Releases page](https://github.com/petertje
 
 ### Windows
 
-1. Download the `.zip` file and extract it to a folder of your choice (e.g. `C:\Program Files\REAPER-Yamaha Sync`).
-2. Run **REAPER-Yamaha Sync.exe** from the extracted folder.
+1. Download the Windows `.zip` and extract it.
+2. Run the installer (`.exe`) inside.
 3. Windows SmartScreen may show *"Windows protected your PC"* — click **More info** → **Run anyway**. This is only needed once.
 
 ---
