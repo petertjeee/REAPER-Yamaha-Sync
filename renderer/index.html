@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REAPER ↔ Yamaha Channel Sync</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">⇄</span>
+          <span class="logo-title">REAPER ↔ Yamaha Sync</span>
+        </div>
+        <span class="version">v1.0</span>
+      </div>
+      <div class="header-right">
+        <div class="status-bar">
+          <div class="status-indicator" id="yamaha-status-dot" title="Yamaha Console"></div>
+          <span class="status-label">Yamaha</span>
+          <div class="status-indicator" id="reaper-status-dot" title="REAPER OSC"></div>
+          <span class="status-label">REAPER</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main layout -->
+    <div class="main">
+      <!-- Left panel: Configuration -->
+      <aside class="sidebar">
+        <!-- Yamaha Config -->
+        <section class="card" id="yamaha-card">
+          <div class="card-header">
+            <h2>🎚 Yamaha Console</h2>
+            <span class="badge" id="yamaha-badge">Disconnected</span>
+          </div>
+
+          <label>Console IP Address</label>
+          <div class="input-row">
+            <input type="text" id="yamaha-ip" placeholder="e.g. 192.168.1.100" spellcheck="false" />
+            <button class="btn-icon" id="scan-btn" title="Scan network for Yamaha consoles">🔍</button>
+          </div>
+
+          <label>TCP Port</label>
+          <input type="number" id="yamaha-port" value="49280" min="1" max="65535" />
+
+          <label>Network Interface (for scan)</label>
+          <select id="iface-select">
+            <option value="">Loading…</option>
+          </select>
+
+          <label>Console Type</label>
+          <select id="console-type">
+            <option value="QL">QL1 / QL5</option>
+            <option value="DM7" selected>DM7 / DM7 Compact</option>
+            <option value="CL">CL1 / CL3 / CL5</option>
+          </select>
+
+          <label style="margin-top:6px">Channel Types to Fetch</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="sync-inch" checked /> Mono Inputs (InCh)</label>
+            <label class="checkbox-label"><input type="checkbox" id="sync-stinch" /> Stereo Inputs (StInCh)</label>
+            <label class="checkbox-label"><input type="checkbox" id="sync-mix" /> Mix Buses</label>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="yamaha-connect-btn">Connect</button>
+            <button class="btn btn-danger" id="yamaha-disconnect-btn" disabled>Disconnect</button>
+          </div>
+
+          <div id="scan-results" class="scan-results hidden">
+            <label>Found consoles:</label>
+            <div id="scan-list"></div>
+          </div>
+        </section>
+
+        <!-- REAPER Config -->
+        <section class="card" id="reaper-card">
+          <div class="card-header">
+            <h2>🎛 REAPER</h2>
+            <span class="badge" id="reaper-badge">Disconnected</span>
+          </div>
+
+          <label>REAPER Host</label>
+          <input type="text" id="reaper-host" value="127.0.0.1" spellcheck="false" />
+
+          <label>REAPER OSC Listen Port <span class="hint">(port REAPER sends to)</span></label>
+          <input type="number" id="reaper-listen-port" value="9000" min="1" max="65535" />
+
+          <label>REAPER OSC Send Port <span class="hint">(port REAPER listens on)</span></label>
+          <input type="number" id="reaper-send-port" value="8000" min="1" max="65535" />
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="reaper-connect-btn">Connect</button>
+            <button class="btn btn-danger" id="reaper-disconnect-btn" disabled>Disconnect</button>
+            <button class="btn btn-secondary" id="reaper-refresh-btn" disabled title="Request current track names from REAPER">↺</button>
+            <button class="btn btn-secondary" id="reaper-help-btn" title="REAPER OSC setup instructions">?</button>
+          </div>
+
+          <button class="btn btn-secondary" id="reaper-autoconfig-btn" style="width:100%">⚙️ Auto-configure REAPER OSC</button>
+
+          <div class="help-box hidden" id="reaper-help-box">
+            <strong>REAPER Setup:</strong><br>
+            Options → Settings → Control/OSC/Web → Add → OSC<br>
+            • Mode: <em>Configure device IP + local port</em><br>
+            • Device IP: <em>127.0.0.1</em><br>
+            • Device port: <strong id="hint-listen-port">9000</strong><br>
+            • Local listen port: <strong id="hint-send-port">8000</strong><br>
+            <em>Or use ⚙️ Auto-configure above (then restart REAPER).</em><br><br>
+            <strong>⚠️ REAPER tracks are not created automatically.</strong><br>
+            You must create tracks in REAPER first. This app only sets names on existing tracks.
+          </div>
+        </section>
+
+        <!-- Sync Options -->
+        <section class="card">
+          <div class="card-header">
+            <h2>⚡ Sync</h2>
+          </div>
+
+          <label>Sync Direction</label>
+          <div class="direction-picker">
+            <button class="dir-btn active" id="dir-yamaha-to-reaper" data-dir="yamaha-to-reaper">
+              <span class="dir-arrow">→</span>
+              <span>Yamaha → REAPER</span>
+            </button>
+            <button class="dir-btn" id="dir-reaper-to-yamaha" data-dir="reaper-to-yamaha">
+              <span class="dir-arrow">←</span>
+              <span>REAPER → Yamaha</span>
+            </button>
+          </div>
+
+          <div class="hint" id="sync-selection-hint" style="margin-top:4px">Select channels in the table to sync.</div>
+
+          <div class="btn-row center" style="margin-top:6px">
+            <button class="btn btn-sync" id="sync-btn" disabled>
+              <span id="sync-btn-icon">⇄</span> Sync Selected
+            </button>
+          </div>
+
+        </section>
+
+        <!-- Connection Test -->
+        <section class="card">
+          <div class="card-header">
+            <h2>🔧 Connection Test</h2>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="test-yamaha-btn">Test Yamaha</button>
+            <button class="btn btn-secondary" id="test-reaper-btn">Test REAPER</button>
+          </div>
+          <div id="test-results" class="test-results"></div>
+        </section>
+      </aside>
+
+      <!-- Right panel: Channel table + log -->
+      <div class="content">
+        <!-- Channel name table -->
+        <section class="card full-height">
+          <div class="card-header">
+            <h2>📋 Channel Names</h2>
+            <div class="table-controls">
+              <button class="btn btn-secondary btn-sm" id="select-all-btn">☑ All</button>
+              <button class="btn btn-secondary btn-sm" id="select-none-btn">☐ None</button>
+              <span class="table-sep"></span>
+              <button class="btn btn-secondary btn-sm" id="fetch-names-btn" disabled>🔄 Fetch</button>
+              <button class="btn btn-secondary btn-sm" id="clear-table-btn">✕ Clear</button>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="channel-table">
+              <thead>
+                <tr>
+                  <th class="col-cb"><input type="checkbox" id="select-all-hdr" title="Select all" /></th>
+                  <th class="col-color"></th>
+                  <th class="col-num">#</th>
+                  <th>Yamaha Name</th>
+                  <th>REAPER Track</th>
+                  <th class="col-status">≈</th>
+                </tr>
+              </thead>
+              <tbody id="channel-tbody">
+                <tr class="empty-row">
+                  <td colspan="6">Connect to console and click 🔄 Fetch to load channel data.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Log -->
+        <section class="card log-card">
+          <div class="card-header">
+            <h2>📝 Activity Log</h2>
+            <button class="btn btn-secondary btn-sm" id="clear-log-btn">Clear</button>
+          </div>
+          <div id="log" class="log"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing tracks modal -->
+  <div id="existing-tracks-modal" class="overlay hidden">
+    <div class="overlay-box" style="max-width:400px;text-align:left">
+      <h3 style="margin:0 0 10px;font-size:14px">🎚️ Existing REAPER Tracks Detected</h3>
+      <div id="existing-tracks-msg" style="font-size:12px;line-height:1.6;color:var(--text2);margin-bottom:14px"></div>
+      <div class="btn-row" style="justify-content:flex-end;gap:8px">
+        <button class="btn btn-secondary btn-sm" id="existing-tracks-cancel">Cancel</button>
+        <button class="btn btn-secondary btn-sm" id="existing-tracks-overwrite">Overwrite</button>
+        <button class="btn btn-primary btn-sm" id="existing-tracks-append">Add After Existing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track count modal -->
+  <div id="track-modal" class="overlay hidden">
+    <div class="overlay-box" style="max-width:360px;text-align:left">
+      <h3 style="margin:0 0 10px;font-size:14px">⚠️ Missing REAPER Tracks</h3>
+      <div id="track-modal-msg" style="font-size:12px;line-height:1.6;color:var(--text2);margin-bottom:14px"></div>
+      <div class="btn-row" style="justify-content:flex-end;gap:8px">
+        <button class="btn btn-secondary btn-sm" id="track-modal-cancel">Cancel</button>
+        <button class="btn btn-secondary btn-sm" id="track-modal-skip">Sync existing only</button>
+        <button class="btn btn-primary btn-sm" id="track-modal-create">Create &amp; Sync</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scan progress overlay -->
+  <div id="scan-overlay" class="overlay hidden">
+    <div class="overlay-box">
+      <div class="spinner"></div>
+      <div id="scan-progress-text">Scanning network…</div>
+      <button class="btn btn-danger btn-sm" id="cancel-scan-btn">Cancel</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

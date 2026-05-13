@@ -1,0 +1,37 @@
+{
+  "name": "reaper-yamaha-sync",
+  "version": "1.0.0",
+  "description": "Sync channel names between Yamaha DM7/QL mixers and REAPER DAW",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:all": "electron-builder --mac --win"
+  },
+  "build": {
+    "appId": "com.yamaha.reaper-sync",
+    "productName": "REAPER-Yamaha Sync",
+    "icon": "resources/icon",
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }]
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "resources/**/*",
+      "node_modules/**/*"
+    ]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
