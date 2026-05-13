@@ -5,6 +5,32 @@ Runs on **macOS** and **Windows** as a self-contained desktop application — no
 
 ---
 
+## Installation
+
+Download the latest release from the [Releases page](https://github.com/petertjeee/REAPER-Yamaha-Sync/releases).
+
+### macOS
+
+1. Download the `.zip` for your Mac:
+   - **Apple Silicon** (M1/M2/M3/M4): `...-mac-arm64.zip`
+   - **Intel**: `...-mac-x64.zip`
+2. Extract the zip and move **REAPER-Yamaha Sync.app** to your Applications folder.
+3. On first launch, macOS will block the app (*"Apple could not verify…"*). To fix this, open **Terminal** and run:
+   ```bash
+   xattr -cr /Applications/REAPER-Yamaha\ Sync.app
+   ```
+4. Now open the app normally. This is only needed once.
+
+> This is required because the app is not signed with an Apple Developer certificate. The command removes the macOS quarantine flag.
+
+### Windows
+
+1. Download the `.zip` file and extract it to a folder of your choice (e.g. `C:\Program Files\REAPER-Yamaha Sync`).
+2. Run **REAPER-Yamaha Sync.exe** from the extracted folder.
+3. Windows SmartScreen may show *"Windows protected your PC"* — click **More info** → **Run anyway**. This is only needed once.
+
+---
+
 ## How it works
 
 | Component | Protocol | Details |
@@ -19,7 +45,7 @@ Channel names are read/written with:
 get MIXER:Current/InCh/Label/Name <ch> 0
 set MIXER:Current/InCh/Label/Name <ch> 0 "Name"
 ```
-Supported channel types: `InCh` (mono inputs), `StInCh` (stereo inputs), `Mix` (mix buses), `DCA`.
+Supported channel types: `InCh` (mono inputs), `StInCh` (stereo inputs), `Mix` (mix buses).
 
 ### REAPER OSC
 REAPER's built-in OSC control surface sends and receives track names as:
@@ -74,16 +100,6 @@ The help box in the app always shows the correct port values based on your curre
 
 Use **Connection Test** to diagnose issues with either connection.
 
-### DCA Folder Groups
-
-When syncing **Yamaha → REAPER** with the **"Create DCA folder groups"** option enabled, the app generates a Lua script that creates folder tracks in REAPER for each DCA group, with the assigned channels nested inside.
-
-Folder tracks are automatically named with a **`DCA - `** prefix (e.g. `DCA - Drums`, `DCA - Keys`). This prefix is used by the app to distinguish folder tracks from regular audio tracks — **folder tracks are filtered out** when reading track names from REAPER, so they don't interfere with channel mapping or sync.
-
-> **Important:** Do not remove the `DCA - ` prefix from folder track names in REAPER. If you rename a folder track and remove the prefix, the app will treat it as a regular track and include it in the sync. You are free to rename it as long as it still starts with `DCA - ` (e.g. `DCA - My Custom Group`).
-
-> **Note:** Once you've synced with DCA folder groups into a REAPER project, that project contains extra folder tracks (e.g. `DCA - Drums`) in addition to the audio tracks. If you later sync again **without** the DCA folder option, the app won't filter these folder tracks out and the track numbering will be off — the folder tracks shift all subsequent track numbers. Always use the same DCA folder setting when syncing to the same REAPER project, or remove the folder tracks manually in REAPER before re-syncing without folders.
-
 ### REAPER Track Detection
 
 The app reads REAPER track names via OSC using 8-track banks. It automatically iterates through all banks to collect every track in the project. Tracks are identified by their **custom name** — tracks with default names (e.g. `Track 1`, `Track 2`) are ignored, as REAPER always reports 256 track slots regardless of how many actual tracks exist.
@@ -107,11 +123,11 @@ Distributed builds are self-contained — end users do **not** need Node.js inst
 
 ## Channel count reference
 
-| Console | Mono In | Stereo In | Mix Buses | DCA |
-|---|---|---|---|---|
-| QL1 / QL5 | 32 | 8 | 16 | 8 |
-| DM7 / DM7 Compact | 120 | 8 | 24 | 12 |
-| CL1 / CL3 / CL5 | 72 | 8 | 24 | 8 |
+| Console | Mono In | Stereo In | Mix Buses |
+|---|---|---|---|
+| QL1 / QL5 | 32 | 8 | 16 |
+| DM7 / DM7 Compact | 120 | 8 | 24 |
+| CL1 / CL3 / CL5 | 72 | 8 | 24 |
 
 ---
 

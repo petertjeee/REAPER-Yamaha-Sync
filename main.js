@@ -22,6 +22,7 @@ function createWindow() {
     backgroundColor: '#1a1a2e'
   });
 
+  mainWindow.setMenuBarVisibility(false);
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
   if (process.argv.includes('--dev')) {
