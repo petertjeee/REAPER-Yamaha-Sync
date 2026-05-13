@@ -39,6 +39,9 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
+// ─── App version ──────────────────────────────────────────────────────────────
+ipcMain.handle('get-app-version', () => app.getVersion());
+
 // ─── Network interfaces ───────────────────────────────────────────────────────
 ipcMain.handle('get-network-interfaces', () => {
   const ifaces = os.networkInterfaces();

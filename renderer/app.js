@@ -35,6 +35,10 @@ function escapeHtml(s) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  // Display app version
+  const version = await window.api.getAppVersion();
+  document.getElementById('app-version').textContent = `v${version}`;
+
   await loadNetworkInterfaces();
   bindEvents();
   updateUI();
